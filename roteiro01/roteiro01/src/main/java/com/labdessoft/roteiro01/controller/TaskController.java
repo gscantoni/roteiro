@@ -3,6 +3,7 @@ package com.labdessoft.roteiro01.controller;
 import com.labdessoft.roteiro01.entity.Task;
 import com.labdessoft.roteiro01.repository.TaskRepository;
 import io.swagger.v3.oas.annotations.Operation;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -25,7 +26,7 @@ public class TaskController {
     @Operation(summary = "Adiciona uma nova tarefa")
     public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
         if (task.getDueDate() != null && task.getDueDate().isBefore(LocalDate.now())) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try {
             Task savedTask = taskRepository.save(task);
@@ -34,7 +35,6 @@ public class TaskController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualiza uma tarefa pelo seu ID")
@@ -59,13 +59,10 @@ public class TaskController {
         return ResponseEntity.ok(updatedTask);
     }
 
-
     @GetMapping("/filterByDate")
     @Operation(summary = "Filtra pela data")
     public ResponseEntity<List<Task>> findByDueDate(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        List<Task> tasks = taskRepository.findAll().stream()
-                          .filter(t -> t.getDueDate() != null && t.getDueDate().equals(date))
-                          .collect(Collectors.toList());
+        List<Task> tasks = taskRepository.findTasksByDueDateOrDeadlineInDays(date);
         if (tasks.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
