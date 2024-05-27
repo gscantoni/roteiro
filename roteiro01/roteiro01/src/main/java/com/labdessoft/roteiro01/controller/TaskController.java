@@ -72,13 +72,5 @@ public class TaskController {
         }
     }
 
-    @GetMapping("/filterByDate")
-    @Operation(summary = "Filtra pela data")
-    public ResponseEntity<List<Task>> findByDueDate(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        List<Task> tasks = taskRepository.findTasksByDueDateOrDeadlineInDays(date);
-        if (tasks.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(tasks, HttpStatus.OK);
-    }
+
 }

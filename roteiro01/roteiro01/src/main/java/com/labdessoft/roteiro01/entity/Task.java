@@ -58,17 +58,4 @@ public class Task {
         this.dueDate = dueDate;
     }
 
-    public String getStatus() {
-        if (completed != null && completed) {
-            return "Concluída";
-        } else {
-            LocalDate referenceDate = dueDate != null ? dueDate : (deadlineInDays != null ? LocalDate.now().plusDays(deadlineInDays) : null);
-            if (referenceDate != null && referenceDate.isBefore(LocalDate.now())) {
-                long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(referenceDate, LocalDate.now());
-                return daysBetween + " dias de atraso";
-            } else {
-                return "Prevista";
-            }
-        }
-    }
 }
