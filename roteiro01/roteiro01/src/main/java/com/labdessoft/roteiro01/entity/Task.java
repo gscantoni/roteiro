@@ -1,3 +1,20 @@
+package com.labdessoft.roteiro01.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -28,10 +45,18 @@ public class Task {
     private Integer deadlineInDays;
 
     @Schema(description = "Indica a prioridade")
+    @NotNull(message = "A prioridade não pode ser nula")
     private Priority priority;
 
     @Schema(description = "Status atual da tarefa")
     private String status;
+
+    public Task(String title, String description, Boolean completed, LocalDate dueDate) {
+        this.title = title;
+        this.description = description;
+        this.completed = completed;
+        this.dueDate = dueDate;
+    }
 
     public String getStatus() {
         if (completed != null && completed) {

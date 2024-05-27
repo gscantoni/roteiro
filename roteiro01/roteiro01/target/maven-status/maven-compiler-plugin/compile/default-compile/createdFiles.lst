@@ -1,0 +1,5 @@
+com\labdessoft\roteiro01\entity\Task.class
+com\labdessoft\roteiro01\Roteiro01Application.class
+com\labdessoft\roteiro01\controller\TaskController.class
+com\labdessoft\roteiro01\repository\TaskRepository.class
+com\labdessoft\roteiro01\entity\Priority.class

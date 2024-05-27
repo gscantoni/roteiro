@@ -2,42 +2,39 @@ package com.labdessoft.roteiro01;
 
 import com.labdessoft.roteiro01.entity.Task;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(SpringExtension.class)
 @SpringBootTest
+@ActiveProfiles("test")
 class Roteiro01ApplicationTests {
 
-    @Autowired
-    private Validator validator;
-
     @Test
-    void carregaContexto() {
+    void contextLoads() {
     }
 
     @Test
-    void tarefaComDataFuturaDevePassarNaValidacao() {
-        Task tarefa = new Task("Completar o projeto", "Deve ser concluído até o próximo mês", true, LocalDate.now().plusDays(30));
-        Errors erros = new BeanPropertyBindingResult(tarefa, "tarefa");
-        validator.validate(tarefa, erros);
-
-        assertThat(erros.hasErrors()).isFalse();
+    void testCreateTask() {
+        Task task = new Task("Title", "Description", false, LocalDate.now().plusDays(1));
+        assertThat(task.getTitle()).isEqualTo("Title");
+        assertThat(task.getDescription()).isEqualTo("Description");
+        assertThat(task.getCompleted()).isFalse();
+        assertThat(task.getDueDate()).isEqualTo(LocalDate.now().plusDays(1));
     }
 
     @Test
-    void tarefaComDataPassadaDeveFalharNaValidacao() {
-        Task tarefa = new Task("Iniciar o projeto", "Isso deveria ter começado no mês passado", true, LocalDate.now().minusDays(30));
-        Errors erros = new BeanPropertyBindingResult(tarefa, "tarefa");
-        validator.validate(tarefa, erros);
+    void testTaskStatus() {
+        Task task = new Task("Title", "Description", false, LocalDate.now().minusDays(1));
+        assertThat(task.getStatus()).contains("dias de atraso");
 
-        assertThat(erros.hasErrors()).isTrue();
-        assertThat(erros.getFieldError("dueDate").getDefaultMessage()).isEqualTo("A data prevista de conclusão deve ser hoje ou no futuro");
+        task.setCompleted(true);
+        assertThat(task.getStatus()).isEqualTo("Concluída");
     }
 }

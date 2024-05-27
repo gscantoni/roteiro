@@ -3,7 +3,6 @@ package com.labdessoft.roteiro01.controller;
 import com.labdessoft.roteiro01.entity.Task;
 import com.labdessoft.roteiro01.repository.TaskRepository;
 import io.swagger.v3.oas.annotations.Operation;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/task")
@@ -55,8 +53,23 @@ public class TaskController {
         existingTask.setDueDate(taskDetails.getDueDate());
         existingTask.setPriority(taskDetails.getPriority());
 
-        final Task updatedTask = taskRepository.save(existingTask);
-        return ResponseEntity.ok(updatedTask);
+        try {
+            final Task updatedTask = taskRepository.save(existingTask);
+            return ResponseEntity.ok(updatedTask);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Deleta uma tarefa pelo seu ID")
+    public ResponseEntity<HttpStatus> deleteTask(@PathVariable("id") long id) {
+        try {
+            taskRepository.deleteById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/filterByDate")
