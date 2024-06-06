@@ -1,19 +1,9 @@
 package com.labdessoft.roteiro01.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -59,7 +49,7 @@ public class Task {
     @Schema(description = "Status atual da tarefa")
     private String status;
 
-    public Task(String title, String description, Boolean completed, LocalDate dueDate, Integer deadlineInDays, Priority priority, TaskType taskType) {
+    public Task(String title, String description, boolean completed, LocalDate dueDate, Integer deadlineInDays, Priority priority, TaskType taskType) {
         this.title = title;
         this.description = description;
         this.completed = completed;
@@ -67,6 +57,15 @@ public class Task {
         this.deadlineInDays = deadlineInDays;
         this.priority = priority;
         this.taskType = taskType;
+        this.status = determineStatus();
+    }
+
+    public Task(String title, String description, Priority priority, TaskType taskType, LocalDate dueDate) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.taskType = taskType;
+        this.dueDate = dueDate;
         this.status = determineStatus();
     }
 

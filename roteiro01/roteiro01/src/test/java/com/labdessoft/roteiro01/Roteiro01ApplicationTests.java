@@ -34,7 +34,7 @@ class Roteiro01ApplicationTests {
     void shouldCreateTask() throws Exception {
         String taskJson = "{ \"title\": \"New Task\", \"description\": \"This is a new task\", \"completed\": false, \"dueDate\": \"2024-12-31\", \"priority\": \"HIGH\", \"taskType\": \"DATE\" }";
 
-        mockMvc.perform(post("/task")
+        mockMvc.perform(post("/tasks")  // Ajustado para "/tasks"
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(taskJson))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
@@ -51,7 +51,7 @@ class Roteiro01ApplicationTests {
 
         String taskUpdateJson = "{ \"title\": \"Updated Task\", \"description\": \"This is an updated task\", \"completed\": true, \"dueDate\": \"2024-12-31\", \"priority\": \"LOW\", \"taskType\": \"DATE\" }";
 
-        mockMvc.perform(put("/task/" + task.getId())
+        mockMvc.perform(put("/tasks/" + task.getId())  // Ajustado para "/tasks/{id}"
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(taskUpdateJson))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -67,7 +67,7 @@ class Roteiro01ApplicationTests {
         Task task = new Task("Task to Delete", "This task will be deleted", false, LocalDate.now().plusDays(5), 5, Priority.LOW, TaskType.FREE);
         task = taskRepository.save(task);
 
-        mockMvc.perform(delete("/task/" + task.getId()))
+        mockMvc.perform(delete("/tasks/" + task.getId()))  // Ajustado para "/tasks/{id}"
                 .andExpect(MockMvcResultMatchers.status().isNoContent());
     }
 
@@ -76,7 +76,7 @@ class Roteiro01ApplicationTests {
         Task task = new Task("Task to Retrieve", "This task will be retrieved", false, LocalDate.now().plusDays(5), 5, Priority.HIGH, TaskType.DEADLINE);
         task = taskRepository.save(task);
 
-        mockMvc.perform(get("/task/" + task.getId()))
+        mockMvc.perform(get("/tasks/" + task.getId()))  // Ajustado para "/tasks/{id}"
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Task to Retrieve"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("This task will be retrieved"))

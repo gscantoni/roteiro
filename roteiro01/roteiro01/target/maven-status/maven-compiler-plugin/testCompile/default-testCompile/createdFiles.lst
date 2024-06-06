@@ -1,1 +1,7 @@
+com\labdessoft\roteiro01\unit\entity\PriorityTest.class
+com\labdessoft\roteiro01\unit\repository\TaskRepositoryTest.class
+com\labdessoft\roteiro01\unit\entity\TaskTest.class
+com\labdessoft\roteiro01\integration\TaskControllerIntegrationTest.class
 com\labdessoft\roteiro01\Roteiro01ApplicationTests.class
+com\labdessoft\roteiro01\unit\entity\TaskTypeTest.class
+com\labdessoft\roteiro01\resources\unit\controller\TaskControllerUnitTests.class
