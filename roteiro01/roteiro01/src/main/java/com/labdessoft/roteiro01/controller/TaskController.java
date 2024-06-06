@@ -1,7 +1,8 @@
 package com.labdessoft.roteiro01.controller;
 
 import com.labdessoft.roteiro01.entity.Task;
-import com.labdessoft.roteiro01.entity.TaskType;  
+import com.labdessoft.roteiro01.entity.TaskType;
+import com.labdessoft.roteiro01.entity.Priority;
 import com.labdessoft.roteiro01.repository.TaskRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/task")
@@ -91,5 +93,33 @@ public class TaskController {
 
         task.setStatus(task.determineStatus());
         return new ResponseEntity<>(task, HttpStatus.OK);
+    }
+
+    @GetMapping("/priority/{priority}")
+    @Operation(summary = "Recupera tarefas pela prioridade")
+    public ResponseEntity<List<Task>> getTasksByPriority(@PathVariable("priority") Priority priority) {
+        try {
+            List<Task> tasks = taskRepository.findByPriority(priority);
+            if (tasks.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(tasks, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/status/{status}")
+    @Operation(summary = "Recupera tarefas pelo status")
+    public ResponseEntity<List<Task>> getTasksByStatus(@PathVariable("status") String status) {
+        try {
+            List<Task> tasks = taskRepository.findByStatus(status);
+            if (tasks.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(tasks, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
