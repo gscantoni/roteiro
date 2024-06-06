@@ -1,17 +1,16 @@
 package com.labdessoft.roteiro01.controller;
 
 import com.labdessoft.roteiro01.entity.Task;
+import com.labdessoft.roteiro01.entity.TaskType;  
 import com.labdessoft.roteiro01.repository.TaskRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.time.LocalDate;
-import java.util.List;
 
 @RestController
 @RequestMapping("/task")
@@ -23,7 +22,10 @@ public class TaskController {
     @PostMapping
     @Operation(summary = "Adiciona uma nova tarefa")
     public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
-        if (task.getDueDate() != null && task.getDueDate().isBefore(LocalDate.now())) {
+        if (task.getTaskType() == TaskType.DATE && (task.getDueDate() == null || task.getDueDate().isBefore(LocalDate.now()))) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        if (task.getTaskType() == TaskType.DEADLINE && task.getDeadlineInDays() == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try {
@@ -43,7 +45,10 @@ public class TaskController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        if (taskDetails.getDueDate() != null && taskDetails.getDueDate().isBefore(LocalDate.now())) {
+        if (taskDetails.getTaskType() == TaskType.DATE && (taskDetails.getDueDate() == null || taskDetails.getDueDate().isBefore(LocalDate.now()))) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        if (taskDetails.getTaskType() == TaskType.DEADLINE && taskDetails.getDeadlineInDays() == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
@@ -51,7 +56,10 @@ public class TaskController {
         existingTask.setDescription(taskDetails.getDescription());
         existingTask.setCompleted(taskDetails.getCompleted());
         existingTask.setDueDate(taskDetails.getDueDate());
+        existingTask.setDeadlineInDays(taskDetails.getDeadlineInDays());
         existingTask.setPriority(taskDetails.getPriority());
+        existingTask.setTaskType(taskDetails.getTaskType());
+        existingTask.setStatus(existingTask.determineStatus());
 
         try {
             final Task updatedTask = taskRepository.save(existingTask);
@@ -72,5 +80,16 @@ public class TaskController {
         }
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "Recupera uma tarefa pelo seu ID")
+    public ResponseEntity<Task> getTaskById(@PathVariable("id") long id) {
+        Task task = taskRepository.findById(id).orElse(null);
 
+        if (task == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        task.setStatus(task.determineStatus());
+        return new ResponseEntity<>(task, HttpStatus.OK);
+    }
 }
