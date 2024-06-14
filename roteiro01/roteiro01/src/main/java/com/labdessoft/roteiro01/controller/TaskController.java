@@ -1,9 +1,9 @@
 package com.labdessoft.roteiro01.controller;
 
 import com.labdessoft.roteiro01.entity.Task;
-import com.labdessoft.roteiro01.entity.TaskType;
-import com.labdessoft.roteiro01.entity.Priority;
-import com.labdessoft.roteiro01.repository.TaskRepository;
+import com.labdessoft.roteiro01.enums.Priority;
+import com.labdessoft.roteiro01.enums.TaskType;
+import com.labdessoft.roteiro01.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,111 +15,128 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/tasks")  
 public class TaskController {
 
     @Autowired
-    private TaskRepository taskRepository;
+    private TaskService service;
 
-    @PostMapping
-    @Operation(summary = "Adiciona uma nova tarefa")
-    public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
-        if (task.getTaskType() == TaskType.DATE && (task.getDueDate() == null || task.getDueDate().isBefore(LocalDate.now()))) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (task.getTaskType() == TaskType.DEADLINE && task.getDeadlineInDays() == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    @GetMapping("/tasks")
+    @Operation(summary = "Obtém todas as tarefas")
+    public ResponseEntity<List<Task>> getAllTasks() {
         try {
-            Task savedTask = taskRepository.save(task);
-            return new ResponseEntity<>(savedTask, HttpStatus.CREATED);
+            List<Task> tasks = service.getAllTasks();
+            if (tasks.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(tasks);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Atualiza uma tarefa pelo seu ID")
-    public ResponseEntity<Task> updateTask(@PathVariable("id") long id, @Valid @RequestBody Task taskDetails) {
-        Task existingTask = taskRepository.findById(id).orElse(null);
-
-        if (existingTask == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        if (taskDetails.getTaskType() == TaskType.DATE && (taskDetails.getDueDate() == null || taskDetails.getDueDate().isBefore(LocalDate.now()))) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        if (taskDetails.getTaskType() == TaskType.DEADLINE && taskDetails.getDeadlineInDays() == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        existingTask.setTitle(taskDetails.getTitle());
-        existingTask.setDescription(taskDetails.getDescription());
-        existingTask.setCompleted(taskDetails.getCompleted());
-        existingTask.setDueDate(taskDetails.getDueDate());
-        existingTask.setDeadlineInDays(taskDetails.getDeadlineInDays());
-        existingTask.setPriority(taskDetails.getPriority());
-        existingTask.setTaskType(taskDetails.getTaskType());
-        existingTask.setStatus(existingTask.determineStatus());
-
+    @GetMapping("/task/{id}")
+    @Operation(summary = "Obtém uma tarefa por ID")
+    public ResponseEntity<Task> findTaskById(@PathVariable long id) {
         try {
-            final Task updatedTask = taskRepository.save(existingTask);
+            Task task = service.getTaskById(id);
+            if (task == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            task.setStatus(task.determineStatus());
+            return ResponseEntity.ok(task);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PostMapping("/taskCreate")
+    @Operation(summary = "Cria uma nova tarefa")
+    public ResponseEntity<Task> addNewTask(@Valid @RequestBody Task task) {
+        if ((task.getTaskType() == TaskType.DATE && (task.getDueDate() == null || task.getDueDate().isBefore(LocalDate.now()))) || 
+            (task.getTaskType() == TaskType.DEADLINE && task.getDeadlineInDays() == null)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        try {
+            Task newTask = service.createTask(task);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newTask);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PutMapping("/complete/{id}")
+    @Operation(summary = "Marca uma tarefa como concluída")
+    public ResponseEntity<Task> markTaskAsCompleted(@PathVariable long id) {
+        try {
+            Task completedTask = service.completeTask(id);
+            if (completedTask == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            return ResponseEntity.ok(completedTask);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @PutMapping("/taskEdit/{id}")
+    @Operation(summary = "Atualiza uma tarefa existente")
+    public ResponseEntity<Task> modifyTask(@PathVariable long id, @Valid @RequestBody Task taskDetails) {
+        if ((taskDetails.getTaskType() == TaskType.DATE && (taskDetails.getDueDate() == null || taskDetails.getDueDate().isBefore(LocalDate.now()))) || 
+            (taskDetails.getTaskType() == TaskType.DEADLINE && taskDetails.getDeadlineInDays() == null)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        try {
+            Task updatedTask = service.updateTask(id, taskDetails);
+            if (updatedTask == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
             return ResponseEntity.ok(updatedTask);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Deleta uma tarefa pelo seu ID")
-    public ResponseEntity<HttpStatus> deleteTask(@PathVariable("id") long id) {
+    @DeleteMapping("/taskRemove/{id}")
+    @Operation(summary = "Remove uma tarefa pelo ID")
+    public ResponseEntity<HttpStatus> removeTask(@PathVariable long id) {
         try {
-            taskRepository.deleteById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Recupera uma tarefa pelo seu ID")
-    public ResponseEntity<Task> getTaskById(@PathVariable("id") long id) {
-        Task task = taskRepository.findById(id).orElse(null);
-
-        if (task == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        task.setStatus(task.determineStatus());
-        return new ResponseEntity<>(task, HttpStatus.OK);
-    }
-
-    @GetMapping("/priority/{priority}")
-    @Operation(summary = "Recupera tarefas pela prioridade")
-    public ResponseEntity<List<Task>> getTasksByPriority(@PathVariable("priority") Priority priority) {
-        try {
-            List<Task> tasks = taskRepository.findByPriority(priority);
-            if (tasks.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            boolean deleted = service.deleteTask(id);
+            if (!deleted) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-            return new ResponseEntity<>(tasks, HttpStatus.OK);
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    @GetMapping("/status/{status}")
-    @Operation(summary = "Recupera tarefas pelo status")
-    public ResponseEntity<List<Task>> getTasksByStatus(@PathVariable("status") String status) {
+    @GetMapping("/taskPriority/{priority}")
+    @Operation(summary = "Obtém tarefas pela prioridade")
+    public ResponseEntity<List<Task>> getTasksByPriority(@PathVariable Priority priority) {
         try {
-            List<Task> tasks = taskRepository.findByStatus(status);
+            List<Task> tasks = service.getTasksByPriority(priority);
             if (tasks.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+                return ResponseEntity.noContent().build();
             }
-            return new ResponseEntity<>(tasks, HttpStatus.OK);
+            return ResponseEntity.ok(tasks);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @GetMapping("/taskStatus/{status}")
+    @Operation(summary = "Obtém tarefas pelo status")
+    public ResponseEntity<List<Task>> getTasksByStatus(@PathVariable String status) {
+        try {
+            List<Task> tasks = service.getTasksByStatus(status);
+            if (tasks.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(tasks);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

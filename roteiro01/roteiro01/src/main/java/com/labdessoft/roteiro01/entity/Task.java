@@ -1,9 +1,14 @@
 package com.labdessoft.roteiro01.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import com.labdessoft.roteiro01.enums.Priority;
+import com.labdessoft.roteiro01.enums.TaskType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -14,77 +19,116 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Schema(description = "Todos os detalhes sobre uma tarefa.")
 public class Task {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Schema(description = "O título da tarefa")
-    @NotBlank(message = "O título não pode estar em branco")
-    @Size(min = 3, message = "O título deve ter pelo menos 3 caracteres")
-    private String title;
-
-    @Schema(name = "Descrição da tarefa deve possuir pelo menos 10 caracteres")
+    @Schema(description = "Descrição da tarefa deve possuir pelo menos 10 caracteres")
     @Size(min = 10, message = "Descrição da tarefa deve possuir pelo menos 10 caracteres")
     private String description;
 
-    @Schema(description = "Indica se a tarefa foi concluída")
+    @Schema(description = "Tarefa concluída ou não concluída")
     private Boolean completed;
 
-    @Schema(description = "Data prevista de conclusão da tarefa")
+    @Schema(description = "Vencimento da tarefa em data")
     private LocalDate dueDate;
 
-    @Schema(description = "Prazo em dias para conclusão da tarefa")
+    @Schema(description = "Vencimento da tarefa em dias")
     private Integer deadlineInDays;
 
-    @Schema(description = "Indica a prioridade")
-    @NotNull(message = "A prioridade não pode ser nula")
     @Enumerated(EnumType.STRING)
-    private Priority priority;
-
-    @Schema(description = "Tipo da tarefa")
-    @Enumerated(EnumType.STRING)
-    @NotNull(message = "O tipo da tarefa não pode ser nulo")
+    @Schema(description = "Tipo da tarefa - Data, prazo ou livre -")
     private TaskType taskType;
 
-    @Schema(description = "Status atual da tarefa")
+    @Schema(description = "Status da tarefa - Prevista, X dias de atraso ou concluída -")
     private String status;
 
-    public Task(String title, String description, boolean completed, LocalDate dueDate, Integer deadlineInDays, Priority priority, TaskType taskType) {
-        this.title = title;
+    @Enumerated(EnumType.STRING)
+    @Schema(description = "Prioridade da tarefa - Alta, média, baixa -")
+    private Priority priority;
+
+    public Task(String description, Boolean completed, LocalDate dueDate, Integer deadlineInDays, TaskType taskType, String status, Priority priority) {
         this.description = description;
         this.completed = completed;
         this.dueDate = dueDate;
         this.deadlineInDays = deadlineInDays;
-        this.priority = priority;
         this.taskType = taskType;
-        this.status = determineStatus();
+        this.status = status;
+        this.priority = priority;
     }
 
-    public Task(String title, String description, Priority priority, TaskType taskType, LocalDate dueDate) {
-        this.title = title;
+    // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
         this.description = description;
-        this.priority = priority;
-        this.taskType = taskType;
+    }
+
+    public Boolean getCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
-        this.status = determineStatus();
+    }
+
+    public Integer getDeadlineInDays() {
+        return deadlineInDays;
+    }
+
+    public void setDeadlineInDays(Integer deadlineInDays) {
+        this.deadlineInDays = deadlineInDays;
+    }
+
+    public TaskType getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(TaskType taskType) {
+        this.taskType = taskType;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
     }
 
     public String determineStatus() {
-        if (completed != null && completed) {
-            return "Concluída";
-        }
-        if (taskType == TaskType.DATE) {
-            if (dueDate != null && dueDate.isBefore(LocalDate.now())) {
-                return "Atrasada em " + LocalDate.now().minusDays(dueDate.toEpochDay()) + " dias";
-            }
-            return "Prevista";
-        } else if (taskType == TaskType.DEADLINE) {
-            if (deadlineInDays != null && LocalDate.now().isAfter(dueDate.plusDays(deadlineInDays))) {
-                return "Atrasada em " + (LocalDate.now().toEpochDay() - dueDate.plusDays(deadlineInDays).toEpochDay()) + " dias";
-            }
-            return "Prevista";
-        } else {
-            return "Prevista";
-        }
+        return status;
+    }
+
+    @Override
+    public String toString() {
+        return "Task [id=" + id + ", description=" + description + ", completed=" + completed + ", status=" + status + ", priority=" + priority + "]";
     }
 }

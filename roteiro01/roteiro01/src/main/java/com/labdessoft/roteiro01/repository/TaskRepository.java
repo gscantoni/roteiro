@@ -1,7 +1,7 @@
 package com.labdessoft.roteiro01.repository;
 
 import com.labdessoft.roteiro01.entity.Task;
-import com.labdessoft.roteiro01.entity.Priority;
+import com.labdessoft.roteiro01.enums.Priority;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
