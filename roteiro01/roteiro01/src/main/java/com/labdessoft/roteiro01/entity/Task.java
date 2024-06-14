@@ -45,7 +45,7 @@ public class Task {
     private String status;
 
     @Enumerated(EnumType.STRING)
-    @Schema(description = "Prioridade da tarefa - Alta, média, baixa -")
+    @Schema(description = "Prioridade da tarefa - HIGH, MEDIUM, LOW -")
     private Priority priority;
 
     public Task(String description, Boolean completed, LocalDate dueDate, Integer deadlineInDays, TaskType taskType, String status, Priority priority) {
