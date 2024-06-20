@@ -1,5 +1,3 @@
-// src/test/java/com/labdessoft/roteiro01/integration/TaskControllerIntegrationTest.java
-
 package com.labdessoft.roteiro01.integration;
 
 import com.labdessoft.roteiro01.Roteiro01Application;
@@ -13,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -27,6 +27,8 @@ import static org.hamcrest.Matchers.equalTo;
 @SpringBootTest(classes = {Roteiro01Application.class}, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
 public class TaskControllerIntegrationTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(TaskControllerIntegrationTest.class);
 
     @Autowired
     private TaskRepository taskRepository;
@@ -116,6 +118,8 @@ public class TaskControllerIntegrationTest {
 
     @Test
     public void givenUrl_whenFailureOnGetTaskById_thenNotFound() {
+        logger.info("Testing GET /task/9999 for 404 response");
+
         when()
             .get("/task/9999")
         .then()
@@ -137,6 +141,8 @@ public class TaskControllerIntegrationTest {
 
     @Test
     public void givenUrl_whenSuccessOnGetTasksByPriority_thenCorrect() {
+        logger.info("Testing GET /taskPriority/MEDIUM for 200 response");
+
         when()
             .get("/taskPriority/MEDIUM")
         .then()
@@ -146,6 +152,8 @@ public class TaskControllerIntegrationTest {
 
     @Test
     public void givenUrl_whenSuccessOnGetTasksByStatus_thenCorrect() {
+        logger.info("Testing GET /taskStatus/PENDING for 200 response");
+
         when()
             .get("/taskStatus/PENDING")
         .then()
