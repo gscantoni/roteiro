@@ -53,15 +53,12 @@ public class TaskController {
     @PostMapping("/taskCreate")
     @Operation(summary = "Cria uma nova tarefa")
     public ResponseEntity<Task> addNewTask(@Valid @RequestBody Task task) {
-        // Log the received task for debugging
         System.out.println("Received task: " + task);
 
-        // Validate description length
         if (task.getDescription().length() < 10) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
 
-        // Validate task type and related fields
         if (task.getTaskType() == TaskType.DATE
                 && (task.getDueDate() == null || task.getDueDate().isBefore(LocalDate.now()))) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -103,7 +100,6 @@ public class TaskController {
     @PutMapping("/taskEdit/{id}")
     @Operation(summary = "Atualiza uma tarefa existente")
     public ResponseEntity<Task> modifyTask(@PathVariable long id, @Valid @RequestBody Task taskDetails) {
-        // Log the received task details for debugging
         System.out.println("Received task for update: " + taskDetails);
 
         if ((taskDetails.getTaskType() == TaskType.DATE
@@ -118,7 +114,6 @@ public class TaskController {
             }
             return ResponseEntity.ok(updatedTask);
         } catch (Exception e) {
-            // Log the exception for debugging
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }

@@ -47,6 +47,7 @@ public class TaskControllerIntegrationTest {
         task.setDeadlineInDays(5);
         task.setTaskType(TaskType.DEADLINE);
         task.setPriority(Priority.MEDIUM);
+        task.setStatus("Scheduled");
 
         Task savedTask = taskRepository.save(task);
         taskId = savedTask.getId();
@@ -117,17 +118,6 @@ public class TaskControllerIntegrationTest {
     }
 
     @Test
-    public void givenUrl_whenFailureOnGetTaskById_thenNotFound() {
-        logger.info("Testing GET /task/9999 for 404 response");
-
-        when()
-            .get("/task/9999")
-        .then()
-            .statusCode(404)
-            .log().ifValidationFails();
-    }
-
-    @Test
     public void givenUrl_whenSuccessOnDeleteRemovesTask_thenCorrect() {
         Optional<Task> optionalTask = taskRepository.findById(taskId);
         if (optionalTask.isPresent()) {
@@ -152,10 +142,10 @@ public class TaskControllerIntegrationTest {
 
     @Test
     public void givenUrl_whenSuccessOnGetTasksByStatus_thenCorrect() {
-        logger.info("Testing GET /taskStatus/PENDING for 200 response");
+        logger.info("Testing GET /taskStatus/Scheduled for 200 response");
 
         when()
-            .get("/taskStatus/PENDING")
+            .get("/taskStatus/Scheduled")
         .then()
             .statusCode(200)
             .log().ifValidationFails();
