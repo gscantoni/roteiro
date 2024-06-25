@@ -27,6 +27,9 @@ public class TaskService {
     }
 
     public Task createTask(Task task) {
+        if (task.getTaskType() == TaskType.DEADLINE && task.getDueDate() == null) {
+            task.setDueDate(LocalDate.now());
+        }
         validateTask(task);
         updateTaskStatus(task, LocalDate.now());
         return taskRepository.save(task);
@@ -42,6 +45,9 @@ public class TaskService {
     public Task updateTask(long id, Task taskDetails) {
         if (!taskRepository.existsById(id)) {
             throw new RuntimeException("Task not found with id: " + id);
+        }
+        if (taskDetails.getTaskType() == TaskType.DEADLINE && taskDetails.getDueDate() == null) {
+            taskDetails.setDueDate(LocalDate.now());
         }
         taskDetails.setId(id);
         validateTask(taskDetails);

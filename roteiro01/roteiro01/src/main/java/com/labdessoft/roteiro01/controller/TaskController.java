@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 public class TaskController {
 
     @Autowired
@@ -52,10 +53,29 @@ public class TaskController {
     @PostMapping("/taskCreate")
     @Operation(summary = "Cria uma nova tarefa")
     public ResponseEntity<Task> addNewTask(@Valid @RequestBody Task task) {
-        if ((task.getTaskType() == TaskType.DATE && (task.getDueDate() == null || task.getDueDate().isBefore(LocalDate.now()))) || 
-            (task.getTaskType() == TaskType.DEADLINE && task.getDeadlineInDays() == null)) {
+        // Log the received task for debugging
+        System.out.println("Received task: " + task);
+
+        // Validate description length
+        if (task.getDescription().length() < 10) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
+
+        // Validate task type and related fields
+        if (task.getTaskType() == TaskType.DATE
+                && (task.getDueDate() == null || task.getDueDate().isBefore(LocalDate.now()))) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        if (task.getTaskType() == TaskType.DEADLINE && task.getDeadlineInDays() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        if (task.getTaskType() == TaskType.FREE) {
+            task.setDueDate(null);
+            task.setDeadlineInDays(null);
+        }
+
         try {
             Task newTask = service.createTask(task);
             return ResponseEntity.status(HttpStatus.CREATED).body(newTask);
@@ -83,8 +103,12 @@ public class TaskController {
     @PutMapping("/taskEdit/{id}")
     @Operation(summary = "Atualiza uma tarefa existente")
     public ResponseEntity<Task> modifyTask(@PathVariable long id, @Valid @RequestBody Task taskDetails) {
-        if ((taskDetails.getTaskType() == TaskType.DATE && (taskDetails.getDueDate() == null || taskDetails.getDueDate().isBefore(LocalDate.now()))) || 
-            (taskDetails.getTaskType() == TaskType.DEADLINE && taskDetails.getDeadlineInDays() == null)) {
+        // Log the received task details for debugging
+        System.out.println("Received task for update: " + taskDetails);
+
+        if ((taskDetails.getTaskType() == TaskType.DATE
+                && (taskDetails.getDueDate() == null || taskDetails.getDueDate().isBefore(LocalDate.now()))) ||
+                (taskDetails.getTaskType() == TaskType.DEADLINE && taskDetails.getDeadlineInDays() == null)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         try {
@@ -94,6 +118,8 @@ public class TaskController {
             }
             return ResponseEntity.ok(updatedTask);
         } catch (Exception e) {
+            // Log the exception for debugging
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
