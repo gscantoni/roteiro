@@ -1,0 +1,15 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "Usuário", "Acessar o sistema de tarefas")
+
+System_Boundary(c1, "Sistema de Gerenciamento de Tarefas") {
+    Container(web_app, "Aplicação Web", "React.js", "Interface de usuário para gerenciar tarefas")
+    Container(api, "API", "Spring Boot", "Backend responsável por gerenciar as requisições")
+    ContainerDb(db, "Banco de Dados", "MySQL", "Armazena dados de tarefas")
+}
+
+Rel(user, web_app, "Interage via navegador")
+Rel(web_app, api, "Requisições HTTP (REST API)")
+Rel(api, db, "Consultas e atualizações SQL")
+@enduml
