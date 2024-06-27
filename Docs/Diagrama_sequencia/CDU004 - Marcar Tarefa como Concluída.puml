@@ -1,0 +1,64 @@
+@startuml
+title Diagrama de Sequência referente ao CDU004 - Marcar Tarefa como Concluída
+actor Usuário
+Boundary Frontend
+Boundary SpringBoot
+Control taskController
+Entity Task
+Participant taskService
+Participant taskRepository
+Boundary TypedQuery
+Participant Hibernate
+Database TodoList
+
+activate SpringBoot
+Usuário -> Frontend: Marcar Tarefa como Concluída
+activate Usuário
+activate Frontend
+activate TodoList
+Frontend -> SpringBoot: PUT /complete/{id}
+group Roteiro01Application [Spring Boot Java Application]
+SpringBoot -> taskController: markTaskAsCompleted(id)
+activate taskController
+taskController -> taskService: completeTask(id)
+activate taskService
+taskService -> taskRepository: findById(id)
+activate taskRepository
+taskRepository -> TypedQuery: getSingleResult(Task)
+group JPA Framework [Hibernate]
+Activate TypedQuery
+TypedQuery -> Hibernate: Task
+Activate Hibernate
+Hibernate -> TodoList: SELECT * FROM Tasks WHERE id = ?
+TodoList --> Hibernate: Task data
+Hibernate --> TypedQuery: Task data
+TypedQuery --> taskRepository: Task
+destroy TypedQuery
+end
+taskRepository --> taskService: Task
+destroy taskRepository
+taskService -> Task: setCompleted(true)
+taskService -> Task: updateTaskStatus(task, LocalDate.now())
+taskService -> taskRepository: save(task)
+activate taskRepository
+taskRepository -> TypedQuery: persist(Task)
+group JPA Framework [Hibernate]
+Activate TypedQuery
+TypedQuery -> Hibernate: Task
+Activate Hibernate
+Hibernate -> TodoList: UPDATE Tasks SET completed = true WHERE id = ?
+TodoList --> Hibernate: Affected rows
+Hibernate --> TypedQuery: Task data
+TypedQuery --> taskRepository: Task
+destroy TypedQuery
+end
+taskRepository --> taskService: Task
+destroy taskRepository
+taskService --> taskController: Task completedTask
+destroy taskService
+taskController --> SpringBoot: ResponseEntity.ok(completedTask)
+destroy taskController
+end
+SpringBoot --> Frontend: ResponseEntity.ok(completedTask)
+Frontend --> Usuário: Task
+@enduml

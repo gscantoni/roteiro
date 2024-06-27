@@ -1,0 +1,55 @@
+@startuml
+title Diagrama de Sequência referente ao CDU003 - Criar Nova Tarefa
+actor Usuário
+Boundary Frontend
+Boundary SpringBoot
+Control taskController
+Entity Task
+Participant taskService
+Participant taskRepository
+Boundary TypedQuery
+Participant Hibernate
+Database TodoList
+
+activate SpringBoot
+Usuário -> Frontend: Criar Nova Tarefa
+activate Usuário
+activate Frontend
+activate TodoList
+Frontend -> SpringBoot: POST /taskCreate
+group Roteiro01Application [Spring Boot Java Application]
+SpringBoot -> taskController: addNewTask(task)
+activate taskController
+taskController -> Task: validate task details
+alt Description length < 10 or other validation errors
+    taskController --> SpringBoot: ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    destroy taskController
+else Valid task details
+    taskController -> taskService: createTask(task)
+    activate taskService
+    taskService -> Task: validateTask(task)
+    taskService -> Task: updateTaskStatus(task, LocalDate.now())
+    taskService -> taskRepository: save(task)
+    activate taskRepository
+    taskRepository -> TypedQuery: persist(Task)
+    group JPA Framework [Hibernate]
+    Activate TypedQuery
+    TypedQuery -> Hibernate: Task
+    Activate Hibernate
+    Hibernate -> TodoList: INSERT INTO Tasks
+    TodoList --> Hibernate: Affected rows
+    Hibernate --> TypedQuery: Task data
+    TypedQuery --> taskRepository: Task
+    destroy TypedQuery
+    end
+    taskRepository --> taskService: Task
+    destroy taskRepository
+    taskService --> taskController: Task newTask
+    destroy taskService
+    taskController --> SpringBoot: ResponseEntity.status(HttpStatus.CREATED).body(newTask)
+    destroy taskController
+end
+end
+SpringBoot --> Frontend: ResponseEntity<Task> ResponseEntity.status(HttpStatus.CREATED).body(newTask)
+Frontend --> Usuário: Task
+@enduml

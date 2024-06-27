@@ -1,0 +1,55 @@
+@startuml
+title Diagrama de Sequência referente ao CDU006 - Remover Tarefa
+actor Usuário
+Boundary Frontend
+Boundary SpringBoot
+Control taskController
+Entity Task
+Participant taskService
+Participant taskRepository
+Boundary TypedQuery
+Participant Hibernate
+Database TodoList
+
+activate SpringBoot
+Usuário -> Frontend: Remover Tarefa
+activate Usuário
+activate Frontend
+activate TodoList
+Frontend -> SpringBoot: DELETE /taskRemove/{id}
+group Roteiro01Application [Spring Boot Java Application]
+SpringBoot -> taskController: removeTask(id)
+activate taskController
+taskController -> taskService: deleteTask(id)
+activate taskService
+taskService -> taskRepository: existsById(id)
+alt Task not found
+    taskService --> taskController: Exception
+    taskController --> SpringBoot: ResponseEntity.status(HttpStatus.NOT_FOUND)
+    destroy taskService
+    destroy taskController
+else Task found
+    taskService -> taskRepository: deleteById(id)
+    activate taskRepository
+    taskRepository -> TypedQuery: remove(Task)
+    group JPA Framework [Hibernate]
+    Activate TypedQuery
+    TypedQuery -> Hibernate: Task
+    Activate Hibernate
+    Hibernate -> TodoList: DELETE FROM Tasks WHERE id = ?
+    TodoList --> Hibernate: Affected rows
+    Hibernate --> TypedQuery: Task data
+    TypedQuery --> taskRepository: Task
+    destroy TypedQuery
+    end
+    taskRepository --> taskService: boolean
+    destroy taskRepository
+    taskService --> taskController: boolean
+    destroy taskService
+    taskController --> SpringBoot: ResponseEntity.noContent()
+    destroy taskController
+end
+end
+SpringBoot --> Frontend: ResponseEntity.noContent()
+Frontend --> Usuário: Task Removed
+@enduml

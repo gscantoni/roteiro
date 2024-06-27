@@ -1,0 +1,64 @@
+@startuml
+title Diagrama de Sequência referente ao CDU005 - Atualizar Tarefa
+actor Usuário
+Boundary Frontend
+Boundary SpringBoot
+Control taskController
+Entity Task
+Participant taskService
+Participant taskRepository
+Boundary TypedQuery
+Participant Hibernate
+Database TodoList
+
+activate SpringBoot
+Usuário -> Frontend: Atualizar Tarefa
+activate Usuário
+activate Frontend
+activate TodoList
+Frontend -> SpringBoot: PUT /taskEdit/{id}
+group Roteiro01Application [Spring Boot Java Application]
+SpringBoot -> taskController: modifyTask(id, taskDetails)
+activate taskController
+taskController -> Task: validate task details
+alt Validation errors
+    taskController --> SpringBoot: ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    destroy taskController
+else Valid task details
+    taskController -> taskService: updateTask(id, taskDetails)
+    activate taskService
+    taskService -> taskRepository: existsById(id)
+    alt Task not found
+        taskService --> taskController: Exception
+        taskController --> SpringBoot: ResponseEntity.status(HttpStatus.NOT_FOUND)
+        destroy taskService
+        destroy taskController
+    else Task found
+        taskService -> TaskDetails: setId(id)
+        taskService -> Task: validateTask(taskDetails)
+        taskService -> Task: updateTaskStatus(taskDetails, LocalDate.now())
+        taskService -> taskRepository: save(taskDetails)
+        activate taskRepository
+        taskRepository -> TypedQuery: persist(Task)
+        group JPA Framework [Hibernate]
+        Activate TypedQuery
+        TypedQuery -> Hibernate: Task
+        Activate Hibernate
+        Hibernate -> TodoList: UPDATE Tasks SET ... WHERE id = ?
+        TodoList --> Hibernate: Affected rows
+        Hibernate --> TypedQuery: Task data
+        TypedQuery --> taskRepository: Task
+        destroy TypedQuery
+        end
+        taskRepository --> taskService: Task
+        destroy taskRepository
+        taskService --> taskController: Task updatedTask
+        destroy taskService
+        taskController --> SpringBoot: ResponseEntity.ok(updatedTask)
+        destroy taskController
+    end
+end
+end
+SpringBoot --> Frontend: ResponseEntity.ok(updatedTask)
+Frontend --> Usuário: Task
+@enduml

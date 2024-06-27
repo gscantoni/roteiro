@@ -1,0 +1,47 @@
+@startuml
+title Diagrama de Sequência referente ao CDU008 - Obter Tarefas por Status
+actor Usuário
+Boundary Frontend
+Boundary SpringBoot
+Control taskController
+Entity Task
+Participant taskService
+Participant taskRepository
+Boundary TypedQuery
+Participant Hibernate
+Database TodoList
+
+activate SpringBoot
+Usuário -> Frontend: Obter Tarefas por Status
+activate Usuário
+activate Frontend
+activate TodoList
+Frontend -> SpringBoot: GET /taskStatus/{status}
+group Roteiro01Application [Spring Boot Java Application]
+SpringBoot -> taskController: getTasksByStatus(status)
+activate taskController
+taskController -> taskService: getTasksByStatus(status)
+activate taskService
+taskService -> taskRepository: findByStatus(status)
+activate taskRepository
+taskRepository -> TypedQuery: getResultList(Task)
+group JPA Framework [Hibernate]
+Activate TypedQuery
+TypedQuery -> Hibernate: List(Task)
+Activate Hibernate
+Hibernate -> TodoList: SELECT * FROM Tasks WHERE status = ?
+TodoList --> Hibernate: Task data
+Hibernate --> TypedQuery: Task data
+TypedQuery --> taskRepository: List<Task>
+destroy TypedQuery
+end
+taskRepository --> taskService: List<Task>
+destroy taskRepository
+taskService --> taskController: List<Task> tasks
+destroy taskService
+taskController --> SpringBoot: ResponseEntity.ok(tasks)
+destroy taskController
+end
+SpringBoot --> Frontend: ResponseEntity.ok(tasks)
+Frontend --> Usuário: List<Task>
+@enduml
