@@ -36,9 +36,9 @@ public class TaskMock {
     public static Task createTask(int id) {
         Task task = new Task();
         task.setId((long) id);
-        task.setDescription("Task " + id);
+        task.setDescription("Valid description"); 
         task.setCompleted(false);
-        task.setDueDate(LocalDate.now().plusDays(5));
+        task.setDueDate(LocalDate.now().plusDays(5)); 
         task.setTaskType(TaskType.DATE);
         task.setStatus("Scheduled");
         task.setPriority(Priority.HIGH);
